@@ -13,6 +13,12 @@ train_text_numpy = train_df['text'][:7000].to_numpy()
 train_target_numpy = train_df['target'][:7000].to_numpy()
 test_text_numpy = train_df['text'][7000:].to_numpy()
 test_target_numpy = train_df['target'][7000:].to_numpy()
+# Turn data into TensorFlow Datasets
+train_ds = tf.data.Dataset.from_tensor_slices((train_text_numpy,train_target_numpy))
+test_ds = tf.data.Dataset.from_tensor_slices((test_text_numpy,test_target_numpy))
+# Take the TensorSliceDataset's and turn them into prefetched batches
+train_batch = train_ds.batch(32).prefetch(tf.data.AUTOTUNE)
+test_batch = test_ds.batch(32).prefetch(tf.data.AUTOTUNE)
 # Build model
 inputs = tf.keras.layers.Input(
     shape=(1,),  # inputs are 1-dimensional strings
@@ -41,8 +47,8 @@ def create_embedding_layer(vectorizerlayer):
 embedding = create_embedding_layer(vectorizer)
 pooling = tf.keras.layers.GlobalAveragePooling1D()(embedding)
 dense = tf.keras.layers.Dense(
-    units=1,
-    activation='sigmoid'
+    units=1, # For multi-class, unit = number of classes
+    activation='sigmoid' # For multi-class, softmax
 )
 outputs = dense(pooling)
 model_dense = tf.keras.Model(inputs, outputs)
@@ -50,6 +56,7 @@ model_dense = tf.keras.Model(inputs, outputs)
 
 def compile_and_fit(model):
     model.compile(
+        # For multi-class, if one hot form use "categorical_crossentropy", if int form use sparse_categorical_crossentropy
         loss=tf.keras.losses.BinaryCrossentropy(),
         optimizer=tf.keras.optimizers.Adam(),
         metrics=['accuracy']
@@ -107,3 +114,6 @@ model_hub = tf.keras.Sequential([
     tf.keras.layers.Dense(1, activation="sigmoid")
 ], name="model_6_USE")
 compile_and_fit(model_hub)
+
+# Predict
+prediction=tf.round(model_hub.predict(test_text_numpy))
