@@ -27,4 +27,6 @@ model.fit(
     epochs=10,
     validation_data=(test_data, test_labels)
 )
+prediction = model.predict(test_data)
+prediction_label = tf.argmax(prediction, axis=1)
 model.save('saved_model/classification_model')
