@@ -24,6 +24,11 @@ split_size = int(len(X) * 0.8)
 train_windows, train_labels = X[:split_size], y[:split_size]
 test_windows, test_labels = X[split_size:], y[split_size:]
 
+# # To prevent sequence bias, shuffle the data
+# train_ds = tf.data.Dataset.from_tensor_slices((train_windows, train_labels))
+# test_ds = tf.data.Dataset.from_tensor_slices((test_windows, test_labels))
+# train_ds.shuffle()
+
 # Multivariate time series
 # Block reward values
 block_reward_1 = 50 # 3 January 2009 (2009-01-03) - this block reward isn't in our dataset (it starts from 01 October 2013)
@@ -73,12 +78,19 @@ model_dense.compile(
     optimizer=tf.keras.optimizers.Adam(),
     metrics=['mae'] # do not necessarily need this when the loss function is already MAE
 )
+callback = tf.keras.callbacks.ReduceLROnPlateau(
+    monitor='val_loss',
+    factor=0.2,
+    patience=2,
+    min_lr=0.0001
+)
 model_dense.fit(
     x=train_windows,
     y=train_labels,
     epochs=100,
     batch_size=128,
-    validation_data=(test_windows, test_labels)
+    validation_data=(test_windows, test_labels),
+    callbacks=[callback]
 )
 # Create model with conv1d layer
 model_conv1d = tf.keras.Sequential([
@@ -113,5 +125,7 @@ model_lstm.fit(train_block_windows,
                batch_size=128,
                validation_data=(test_block_windows, test_block_labels)
 )
-# Make predictions using model_dense on the test dataset and view the results
+# Make predictions using model_dense on the test dataset
 model_dense_preds = tf.squeeze(model_dense.predict(test_windows))
+# MAE
+mae = tf.keras.metrics.mean_absolute_error(test_labels, model_dense_preds)
