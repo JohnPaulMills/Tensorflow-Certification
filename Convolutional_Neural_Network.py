@@ -97,6 +97,11 @@ model_multi.fit(
     epochs=5,
     validation_data=test_ds_multi
 )
+# Prediction on CNN Binary Classification
+prediction_binary = model_binary.predict(test_ds_binary) # model.predict accepts batch dataset which is a tuple of (data, label)
+print(prediction_binary[0])
+iterator = iter(test_ds_binary)
+next_batch = iterator.get_next()
+print(next_batch[1])
+print(tf.round(prediction_binary[0:32]))
 model_multi.save('saved_model/CNN_MultiClass_model')
-
-
