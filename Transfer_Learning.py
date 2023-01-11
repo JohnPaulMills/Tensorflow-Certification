@@ -56,4 +56,5 @@ model.fit(
     callbacks=[callback]
     #validation_steps=5 # set it to reduce number of val batches per epoch, toral runtime.
 )
+prediction = model.predict(test_ds)
 model.save('saved_model/CNN_TransferLearning_model')
