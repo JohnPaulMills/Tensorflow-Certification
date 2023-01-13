@@ -10,7 +10,7 @@ import tensorflow_datasets as tfds
 # Take one sample off the training data
 train_one_sample = train_data.take(1) # samples are in format (image_tensor, label)
 # Output info about our training sample
-class_names = class_names = ds_info.features["label"].names
+class_names = ds_info.features["label"].names
 for image, label in train_one_sample:
   print(f"""
   Image shape: {image.shape}
